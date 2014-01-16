@@ -46,9 +46,9 @@ def gc2d_sim():
     (time1, time2, data) = detect1.make_graph(detect2S, 100, method="Smart")
     plot_surf(time1, time2, data, cmap=matplotlib.cm.jet, rstride=2, cstride=10, linewidth=0)
     write_data(time1, time2, data)
-    print np.shape(time1)
-    print np.shape(time2)
-    print np.shape(data)
+    # print np.shape(time1)
+    # print np.shape(time2)
+    # print np.shape(data)
     # print time1, time2, data
 
 

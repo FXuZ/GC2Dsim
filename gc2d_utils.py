@@ -55,21 +55,10 @@ class GC1D:
         return np.arange(lowb, highb, interval, dtype=np.float)
 
     def make_divide_smart(self, lowb, highb, precision=1.e-3):
-#         tsample = np.arange(lowb, highb, precision)
         heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, 3.))
         tails1 = np.add(self.retensions, np.multiply(self.sigmas, 3.))
         divisions = zip(heads1, tails1)
         return merge(divisions)
-#         for i in range(len(tsample)):
-#             begin = i
-#             if self.func(tsample[i])<thres:
-#                 continue
-#             else:
-#                 while(self.func(tsample[i])>=thres):
-#                     i = i+1
-#                 devisions.append(np.array([begin, i]))
-#
-#         return devisions
 
     def divide(self, chop_time, retensions2, sigmas2, method='Traditional'):
         '''
@@ -128,24 +117,11 @@ class GC1D:
             time2 = np.linspace(0, duration, Nsample)
             for i in range(len(second_col)):
                 data = np.concatenate([data, second_col[i].func(time2)])
-#                 fig = plt.figure()
-#                 ax = fig.add_subplot(111)
-#                 fig.add_subplot(ax)
-#                 ax.set_xlabel('t2')
-#                 ax.set_ylabel('intensity')
-#                 ax.plot(time2, second_col[i].func(time2))
-#                 fig.savefig(('col2_time%d.eps' % i))
             data = np.reshape(data, (len(second_col), Nsample))
-#             data = np.concatenate( [list(obj.func(time2))]
-#                                   for obj in second_col )
             return (time1, time2, np.transpose(data))
         elif method == 'Smart':
             tsample1 = np.linspace(self.lowb, self.highb, Nsample1)
             original_data = self.func(tsample1)
-            # data = np.zeros(Nsample) * smart_thres
-            # lowind = []
-            # highind = []
-            # data = np.multiply( np.ones(Nsample1 * Nsample), smart_thres)
             data = np.zeros(Nsample1 * Nsample)
             time2 = np.linspace(0, duration, Nsample)
             for i in range(len(second_col)):
@@ -161,29 +137,15 @@ class GC1D:
                 selected_ind = np.tile(selected_ind, Nsample)
                 scalar = np.tile(scalar, Nsample)
                 col2_data = np.repeat(col2_data, Nsample1)
-                print np.shape(scalar), np.shape(col2_data), np.shape(selected_ind), np.shape(data)
+                ############ for debugging
+                # print np.shape(scalar), np.shape(col2_data), np.shape(selected_ind), np.shape(data)
+                ############
                 data = np.where(selected_ind, np.multiply(scalar, col2_data), data)
 
             data = np.reshape(data, (Nsample, Nsample1))
             return (tsample1, time2, data)
         else:
             return ()
-                # selected_data = np.reshape( np.tile(selected_data, Nsample), (len(selected_data), Nsample))
-                # col2_data = np.reshape( np.tile(second_col[i].func(time2), )
-
-
-#                 factor = np.where( selected_data, selected_data, factor)
-#                 for i in range(len(second_col)):
-#                     for j in range(len(tsample1)):
-#                         if tsample1[j]>=lowbs[i]:
-#                             lowind.append(j)
-#                             while tsample1[j]<highbs[i]:
-#                                 j=j+1
-#                             highind.append(j)
-#                             break
-#                         else:
-#                             continue
-#
 
 
 
@@ -197,12 +159,6 @@ def gaussion_sum(time, retensions, sigmas, partition):
     for i in range(len(retensions)):
         compo = partition[i] * np.exp(-((time-retensions[i]) / sigmas[i])**2 / 2
                                   ) / np.sqrt(2*np.pi) / sigmas[i]
-#         gaus_compo = np.exp(
-#             -np.power(
-#                 np.divide(
-#                     time - retensions[i], 2.), 2.))
-#         gaus_compo = np.divide(gaus_compo, np.sqrt(2*np.pi)*sigmas[i])
-#         compo = np.multiply(gaus_compo, partition[i])
         intens = intens + compo
 
     return intens
