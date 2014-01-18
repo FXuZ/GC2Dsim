@@ -52,7 +52,7 @@ def gc2d_sim():
     d1datafile = open(d1filename, 'w')
     d1datafile.write('time\tsignal')
     for i in range(len(time1)):
-        d1datafile.write('%g\t%g', (time1[i], d1data[i]))
+        d1datafile.write('%g\t%g' % (time1[i], d1data[i]))
     d1datafile.close()
     # print np.shape(time1)
     # print np.shape(time2)
