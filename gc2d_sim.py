@@ -46,6 +46,14 @@ def gc2d_sim():
     (time1, time2, data) = detect1.make_graph(detect2S, 100, method="Smart")
     plot_surf(time1, time2, data, cmap=matplotlib.cm.jet, rstride=2, cstride=10, linewidth=0)
     write_data(time1, time2, data)
+    # write 1st dimensional data to a text file
+    d1data = detect1.signal(time1)
+    d1filename = 'D1signal.dat'
+    d1datafile = open(d1filename, 'w')
+    d1datafile.write('time\tsignal')
+    for i in range(len(time1)):
+        d1datafile.write('%g\t%g', (time1[i], d1data[i]))
+    d1datafile.close()
     # print np.shape(time1)
     # print np.shape(time2)
     # print np.shape(data)

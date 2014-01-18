@@ -27,6 +27,9 @@ class GC1D:
         self.highb = highb
         self.duration = highb - lowb
 
+    def signal(self, time):
+        return self.func(time)
+
     def set_duration(self, dur):
         self.duration = dur
         return self.duration
@@ -201,6 +204,7 @@ def write_data(Ax, Ay, data, filename='graph.dat'):
             datafile.write('%g\t%g\t%g\n' % (Xwrite[j], Ywrite[j], Zwrite[j]))
 
         datafile.write('\n')
+    datafile.close()
 
 def merge(times):
     sorted_list = sorted([sorted(t) for t in times])
