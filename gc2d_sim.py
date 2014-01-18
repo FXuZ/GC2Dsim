@@ -48,11 +48,11 @@ def gc2d_sim():
     write_data(time1, time2, data)
     # write 1st dimensional data to a text file
     d1data = detect1.signal(time1)
-    d1filename = 'D1signal.dat'
+    d1filename = 'D1signal.dat\n'
     d1datafile = open(d1filename, 'w')
     d1datafile.write('time\tsignal')
     for i in range(len(time1)):
-        d1datafile.write('%g\t%g' % (time1[i], d1data[i]))
+        d1datafile.write('%g\t%g\n' % (time1[i], d1data[i]))
     d1datafile.close()
     # print np.shape(time1)
     # print np.shape(time2)
