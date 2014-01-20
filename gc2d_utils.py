@@ -28,19 +28,20 @@ class GC1D:
         self.duration = highb - lowb
 
     def signal(self, time):
+        '''
+        Just a wrapper of the signal function
+        '''
         return self.func(time)
 
     def set_duration(self, dur):
         self.duration = dur
         return self.duration
 
-    def flow_sum(self, time):
-        return self.func(time)
-
     def make_division(self, lowb=0, highb=0, interval=0,
                     method='Traditional', precision=0):
         '''
         make divisions of two methods
+        the returning value is just the data type of corresponding methods
         '''
         if (self.lowb != 0 and lowb == 0):
             lowb = self.lowb
@@ -55,11 +56,20 @@ class GC1D:
 
 
     def make_divide_trad(self, lowb, highb, interval=5):
+        '''
+        make divisions for Traditional method
+        '''
         return np.arange(lowb, highb, interval, dtype=np.float)
 
     def make_divide_smart(self, lowb, highb, precision=1.e-3):
-        heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, 3.))
-        tails1 = np.add(self.retensions, np.multiply(self.sigmas, 3.))
+        '''
+        make divisions for Smart method
+        '''
+        # peak_range controls the width of each peak
+        # the interval of each peak is tR \pm peak_range \times \sigma
+        peak_range = 3.
+        heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, peak_range))
+        tails1 = np.add(self.retensions, np.multiply(self.sigmas, peak_range))
         divisions = zip(heads1, tails1)
         return merge(divisions)
 
@@ -108,6 +118,9 @@ class GC1D:
             return next_col
 
     def make_graph(self, second_col, Nsample=100, method="Traditional", duration=0, Nsample1=500):
+        '''
+        This function calculates the real signal on a 2-D mesh grid
+        '''
         lowbs = [obj.lowb for obj in second_col]
         highbs = [obj.highb for obj in second_col]
         time1 = np.divide(np.add(lowbs, highbs), 2.)
@@ -153,6 +166,9 @@ class GC1D:
 
 
 def gaussion(time, mu, sigma):
+    '''
+    The gaussian distribution function
+    '''
     return np.exp( -np.power((time-mu)/sigma, 2) / 2) / np.sqrt(2*np.pi) / sigma
 
 def gaussion_sum(time, retensions, sigmas, partition):
@@ -185,7 +201,7 @@ def plot_surf(Ax, Ay, surf, **kwargs):
 
     # one set of recommended arguments is as follows
     # ax.plot_surface(Mx, My, surf,
-        # cmap=matplotlib.cm.jet, rstride=2, cstride=10, linewidth=0, kwargs)
+    #     cmap=matplotlib.cm.jet, rstride=2, cstride=10, linewidth=0, kwargs)
     ax.plot_surface(Mx, My, surf, **kwargs)
 
     ax.set_xlabel('t1')
