@@ -117,52 +117,88 @@ class GC1D:
                 next_col.append(tmp1d)
             return next_col
 
-    def make_graph(self, second_col, Nsample=100, method="Traditional", duration=0, Nsample1=500):
+    def make_graph(self, second_col, Nsample2=100, method="Traditional", duration=0, Nsample1=500):
         '''
         This function calculates the real signal on a 2-D mesh grid
         '''
-        lowbs = [obj.lowb for obj in second_col]
-        highbs = [obj.highb for obj in second_col]
-        time1 = np.divide(np.add(lowbs, highbs), 2.)
+#         lowbs = [obj.lowb for obj in second_col]
+#         highbs = [obj.highb for obj in second_col]
         retensions2 = second_col[0].retensions
         sigmas2 = second_col[0].sigmas
         tails2 = np.add(retensions2, np.multiply(sigmas2, 3. ))
         duration = np.max(tails2)
-        data = []
+        # data = []
         if method == 'Traditional':
-            time2 = np.linspace(0, duration, Nsample)
-            for i in range(len(second_col)):
-                data = np.concatenate([data, second_col[i].func(time2)])
-            data = np.reshape(data, (len(second_col), Nsample))
-            return (time1, time2, np.transpose(data))
+            return self.make_graph_trad(second_col, Nsample2, duration)
         elif method == 'Smart':
-            tsample1 = np.linspace(self.lowb, self.highb, Nsample1)
-            original_data = self.func(tsample1)
-            data = np.zeros(Nsample1 * Nsample)
-            time2 = np.linspace(0, duration, Nsample)
-            for i in range(len(second_col)):
-                # calculate conditional indices: element being true means this sample point is within
-                # the i th sampling range of the modulator
-                # length of selected_ind is Nsample1
-                selected_ind = (tsample1>=lowbs[i]) & (tsample1<highbs[i])
-                # selected_data = original_data[selected_ind]
-                quant_pass, Equant_pass = integrate.quad(
-                    self.func, lowbs[i], highbs[i])
-                scalar = np.divide(original_data, quant_pass)
-                col2_data = second_col[i].func(time2)
-                selected_ind = np.tile(selected_ind, Nsample)
-                scalar = np.tile(scalar, Nsample)
-                col2_data = np.repeat(col2_data, Nsample1)
-                ############ for debugging
-                # print np.shape(scalar), np.shape(col2_data), np.shape(selected_ind), np.shape(data)
-                ############
-                data = np.where(selected_ind, np.multiply(scalar, col2_data), data)
-
-            data = np.reshape(data, (Nsample, Nsample1))
-            return (tsample1, time2, data)
+            return self.make_graph_smart(second_col,
+                                         duration, Nsample2, Nsample1)
+#             tsample1 = np.linspace(self.lowb, self.highb, Nsample1)
+#             original_data = self.func(tsample1)
+#             data = np.zeros(Nsample1 * Nsample)
+#             time2 = np.linspace(0, duration, Nsample)
+#             for i in range(len(second_col)):
+#                 # calculate conditional indices: element being true means this sample point is within
+#                 # the i th sampling range of the modulator
+#                 # length of selected_ind is Nsample1
+#                 selected_ind = (tsample1>=lowbs[i]) & (tsample1<highbs[i])
+#                 # selected_data = original_data[selected_ind]
+#                 quant_pass, Equant_pass = integrate.quad(
+#                     self.func, lowbs[i], highbs[i])
+#                 scalar = np.divide(original_data, quant_pass)
+#                 col2_data = second_col[i].func(time2)
+#                 selected_ind = np.tile(selected_ind, Nsample)
+#                 scalar = np.tile(scalar, Nsample)
+#                 col2_data = np.repeat(col2_data, Nsample1)
+#                 ############ for debugging
+#                 # print np.shape(scalar), np.shape(col2_data), np.shape(selected_ind), np.shape(data)
+#                 ############
+#                 data = np.where(selected_ind, np.multiply(scalar, col2_data), data)
+#
+#             data = np.reshape(data, (Nsample, Nsample1))
+#             return (tsample1, time2, data)
         else:
             return ()
 
+    def make_graph_trad(self, second_col, Nsample2=100, duration=0):
+        lowbs = [obj.lowb for obj in second_col]
+        highbs = [obj.highb for obj in second_col]
+        time1 = np.divide(np.add(lowbs, highbs), 2.)
+        time2 = np.linspace(0, duration, Nsample2)
+        data = []
+        for i in range(len(second_col)):
+            data = np.concatenate([data, second_col[i].func(time2)])
+        data = np.reshape(data, (len(second_col), Nsample2))
+        return (time1, time2, np.transpose(data))
+
+    def make_graph_smart(self, second_col, duration, Nsample2=100, Nsample1=500):
+        lowbs = [obj.lowb for obj in second_col]
+        highbs = [obj.highb for obj in second_col]
+        tsample1 = np.linspace(self.lowb, self.highb, Nsample1)
+
+        original_data = self.func(tsample1)
+        data = np.zeros(Nsample1 * Nsample2)
+        time2 = np.linspace(0, duration, Nsample2)
+        for i in range(len(second_col)):
+            # calculate conditional indices: element being true means this sample point is within
+            # the i th sampling range of the modulator
+            # length of selected_ind is Nsample1
+            selected_ind = (tsample1>=lowbs[i]) & (tsample1<highbs[i])
+            # selected_data = original_data[selected_ind]
+            quant_pass, Equant_pass = integrate.quad(
+                self.func, lowbs[i], highbs[i])
+            scalar = np.divide(original_data, quant_pass)
+            col2_data = second_col[i].func(time2)
+            selected_ind = np.tile(selected_ind, Nsample2)
+            scalar = np.tile(scalar, Nsample2)
+            col2_data = np.repeat(col2_data, Nsample1)
+            ############ for debugging
+            # print np.shape(scalar), np.shape(col2_data), np.shape(selected_ind), np.shape(data)
+            ############
+            data = np.where(selected_ind, np.multiply(scalar, col2_data), data)
+
+        data = np.reshape(data, (Nsample2, Nsample1))
+        return (tsample1, time2, data)
 
 
 def gaussion(time, mu, sigma):
