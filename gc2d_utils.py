@@ -17,11 +17,12 @@ class GC1D:
     '''
     lowb = 0
     highb = 0
+    peak_range = 3.
     def __init__(self, retensions, sigmas, partition, lowb=0, highb=0):
         self.retensions = retensions
         self.sigmas = sigmas
         self.partition = partition
-        self.xfunc = lambda x:gaussion_sum(x, retensions, sigmas, partition)
+        self.xfunc = lambda x:gaussian_sum(x, retensions, sigmas, partition)
         self.func = np.vectorize(self.xfunc)
         self.lowb = lowb
         self.highb = highb
@@ -67,9 +68,8 @@ class GC1D:
         '''
         # peak_range controls the width of each peak
         # the interval of each peak is tR \pm peak_range \times \sigma
-        peak_range = 3.
-        heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, peak_range))
-        tails1 = np.add(self.retensions, np.multiply(self.sigmas, peak_range))
+        heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, self.peak_range))
+        tails1 = np.add(self.retensions, np.multiply(self.sigmas, self.peak_range))
         divisions = zip(heads1, tails1)
         return merge(divisions)
 
@@ -89,7 +89,7 @@ class GC1D:
                 part = []
                 for j in range(len(self.retensions)):
                     quant_pass, Equant_pass = integrate.quad(
-                            gaussion, chop_time[i], chop_time[i+1],
+                            gaussian, chop_time[i], chop_time[i+1],
                             args=(self.retensions[j], self.sigmas[j])
                         )
                     quant_pass = quant_pass * self.partition[j]
@@ -107,7 +107,7 @@ class GC1D:
                 part = []
                 for j in range(len(self.retensions)):
                     quant_pass, Equant_pass = integrate.quad(
-                        gaussion, chop_time[i][0], chop_time[i][1],
+                        gaussian, chop_time[i][0], chop_time[i][1],
                         args=(self.retensions[j], self.sigmas[j])
                         )
                     quant_pass = quant_pass * self.partition[j]
@@ -133,30 +133,6 @@ class GC1D:
         elif method == 'Smart':
             return self.make_graph_smart(second_col,
                                          duration, Nsample2, Nsample1)
-#             tsample1 = np.linspace(self.lowb, self.highb, Nsample1)
-#             original_data = self.func(tsample1)
-#             data = np.zeros(Nsample1 * Nsample)
-#             time2 = np.linspace(0, duration, Nsample)
-#             for i in range(len(second_col)):
-#                 # calculate conditional indices: element being true means this sample point is within
-#                 # the i th sampling range of the modulator
-#                 # length of selected_ind is Nsample1
-#                 selected_ind = (tsample1>=lowbs[i]) & (tsample1<highbs[i])
-#                 # selected_data = original_data[selected_ind]
-#                 quant_pass, Equant_pass = integrate.quad(
-#                     self.func, lowbs[i], highbs[i])
-#                 scalar = np.divide(original_data, quant_pass)
-#                 col2_data = second_col[i].func(time2)
-#                 selected_ind = np.tile(selected_ind, Nsample)
-#                 scalar = np.tile(scalar, Nsample)
-#                 col2_data = np.repeat(col2_data, Nsample1)
-#                 ############ for debugging
-#                 # print np.shape(scalar), np.shape(col2_data), np.shape(selected_ind), np.shape(data)
-#                 ############
-#                 data = np.where(selected_ind, np.multiply(scalar, col2_data), data)
-#
-#             data = np.reshape(data, (Nsample, Nsample1))
-#             return (tsample1, time2, data)
         else:
             return ()
 
@@ -185,11 +161,18 @@ class GC1D:
             # length of selected_ind is Nsample1
             selected_ind = (tsample1>=lowbs[i]) & (tsample1<highbs[i])
             # selected_data = original_data[selected_ind]
-            quant_pass, Equant_pass = integrate.quad(
-                self.func, lowbs[i], highbs[i])
-            scalar = np.divide(original_data, quant_pass)
+#             quant_pass, Equant_pass = integrate.quad(
+#                 self.func, lowbs[i], highbs[i])
+#             scalar = np.divide(original_data, quant_pass)
             col2_data = second_col[i].func(time2)
+            fig = plt.figure()
+            plt.plot(time2, col2_data)
+            fig.savefig('curve_smart_%00d.eps' % i)
             selected_ind = np.tile(selected_ind, Nsample2)
+            gauss_mu = (lowbs[i] + highbs[i]) / 2
+            gauss_sigma = (highbs[i] - lowbs[i]) / self.peak_range / 2.
+            vgaussian = np.vectorize(lambda x: gaussian(x, gauss_mu, gauss_sigma))
+            scalar = vgaussian(tsample1)
             scalar = np.tile(scalar, Nsample2)
             col2_data = np.repeat(col2_data, Nsample1)
             ############ for debugging
@@ -201,13 +184,13 @@ class GC1D:
         return (tsample1, time2, data)
 
 
-def gaussion(time, mu, sigma):
+def gaussian(time, mu, sigma):
     '''
     The gaussian distribution function
     '''
     return np.exp( -np.power((time-mu)/sigma, 2) / 2) / np.sqrt(2*np.pi) / sigma
 
-def gaussion_sum(time, retensions, sigmas, partition):
+def gaussian_sum(time, retensions, sigmas, partition):
     assert len(retensions) == len(sigmas)
     assert len(retensions) == len(partition)
     intens = 0
