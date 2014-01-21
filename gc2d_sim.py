@@ -43,7 +43,7 @@ def gc2d_sim():
     detect2S = detect1.divide(
         detect1.make_division(lowb, highb, precision=1.e-3, method='Smart'),
         retensions2, sigmas2, method="Smart")
-    (time1, time2, data) = detect1.make_graph(detect2S, 500, method="Smart", Nsample1=2000)
+    (time1, time2, data) = detect1.make_graph(detect2S, 100, method="Smart")
     plot_surf(time1, time2, data, cmap=matplotlib.cm.jet, rstride=2, cstride=10, linewidth=0)
     write_data(time1, time2, data)
     # write 1st dimensional data to a text file
