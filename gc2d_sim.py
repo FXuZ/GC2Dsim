@@ -26,7 +26,7 @@ def gc2d_sim():
         retensions1.append(float(gas_prop[1]))
         retensions2.append(float(gas_prop[2]))
     # calculate necessary parameters
-    sigmas1 = np.multiply( retensions1, 2.75)/ col_N1
+    sigmas1 = np.multiply( retensions1, 2.75) / col_N1
     sigmas2 = np.multiply( retensions2, 2.75) / col_N2
     tails1 = np.multiply(sigmas1, 3) + retensions1
     heads1 = retensions1 - np.multiply( sigmas1, 3)
@@ -41,7 +41,7 @@ def gc2d_sim():
         detect1.make_division(lowb, highb, interval=6, method='Traditional'),
         retensions2, sigmas2, method="Traditional")
     detect2S = detect1.divide(
-        detect1.make_division(lowb, highb, precision=1.e-3, method='Smart'),
+        detect1.make_division(lowb, highb, method='Smart'),
         retensions2, sigmas2, method="Smart")
     (time1, time2, data) = detect1.make_graph(detect2S, 500, method="Smart", Nsample1=2000)
     plot_surf(time1, time2, data, cmap=matplotlib.cm.jet, rstride=2, cstride=10, linewidth=0)

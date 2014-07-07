@@ -11,13 +11,14 @@ from scipy import integrate
 
 
 
+peak_range = 3.
+
 class GC1D:
     '''
     The 1D GC distribution class.
     '''
     lowb = 0
     highb = 0
-    peak_range = 3.
     def __init__(self, retensions, sigmas, partition, lowb=0, highb=0):
         self.retensions = retensions
         self.sigmas = sigmas
@@ -39,7 +40,7 @@ class GC1D:
         return self.duration
 
     def make_division(self, lowb=0, highb=0, interval=0,
-                    method='Traditional', precision=0):
+                    method='Traditional'):
         '''
         make divisions of two methods
         the returning value is just the data type of corresponding methods
@@ -53,7 +54,7 @@ class GC1D:
             assert interval != 0
             return self.make_divide_trad(lowb, highb, interval)
         elif method == 'Smart':
-            return self.make_divide_smart(lowb, highb, precision)
+            return self.make_divide_smart(lowb, highb)
 
 
     def make_divide_trad(self, lowb, highb, interval=5):
@@ -62,14 +63,14 @@ class GC1D:
         '''
         return np.arange(lowb, highb, interval, dtype=np.float)
 
-    def make_divide_smart(self, lowb, highb, precision=1.e-3):
+    def make_divide_smart(self, lowb, highb):
         '''
         make divisions for Smart method
         '''
         # peak_range controls the width of each peak
         # the interval of each peak is tR \pm peak_range \times \sigma
-        heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, self.peak_range))
-        tails1 = np.add(self.retensions, np.multiply(self.sigmas, self.peak_range))
+        heads1 = np.subtract(self.retensions, np.multiply(self.sigmas, peak_range))
+        tails1 = np.add(self.retensions, np.multiply(self.sigmas, peak_range))
         divisions = zip(heads1, tails1)
         return merge(divisions)
 
@@ -152,7 +153,7 @@ class GC1D:
         highbs = [obj.highb for obj in second_col]
         tsample1 = np.linspace(self.lowb, self.highb, Nsample1)
 
-        original_data = self.func(tsample1)
+#         original_data = self.func(tsample1)
         data = np.zeros(Nsample1 * Nsample2)
         time2 = np.linspace(0, duration, Nsample2)
         for i in range(len(second_col)):
@@ -165,12 +166,12 @@ class GC1D:
 #                 self.func, lowbs[i], highbs[i])
 #             scalar = np.divide(original_data, quant_pass)
             col2_data = second_col[i].func(time2)
-            fig = plt.figure()
-            plt.plot(time2, col2_data)
-            fig.savefig('curve_smart_%00d.eps' % i)
+#             fig = plt.figure()
+#             plt.plot(time2, col2_data)
+#             fig.savefig('curve_smart_%00d.eps')
             selected_ind = np.tile(selected_ind, Nsample2)
             gauss_mu = (lowbs[i] + highbs[i]) / 2
-            gauss_sigma = (highbs[i] - lowbs[i]) / self.peak_range / 2.
+            gauss_sigma = (highbs[i] - lowbs[i]) / peak_range / 2.
             vgaussian = np.vectorize(lambda x: gaussian(x, gauss_mu, gauss_sigma))
             scalar = vgaussian(tsample1)
             scalar = np.tile(scalar, Nsample2)
